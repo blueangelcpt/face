@@ -21,19 +21,33 @@ class FaceComponent extends Component {
 	}
 
 	public function detect($image_url) {
-		$payload = json_encode(array(
-			'url' => $image_url
-		));
-		$result = $this->socket->post(
-			$this->settings['url'] . '/detect?recognitionModel=recognition_02&returnFaceId=true',
-			$payload,
-			array('header' => array(
+		if (filter_var($image_url, FILTER_VALIDATE_URL)) {
+			$contentType = 'application/json';
+			$header = array(
 				'Ocp-Apim-Subscription-Key' => $this->settings['ApiKey'],
-				'Content-Type' => 'application/json',
-			))
+				'Content-Type' => $contentType
+			);
+			$payload = json_encode(array(
+				'url' => $image_url
+			));
+			$endpoint = $this->settings['url'] . '/detect?recognitionModel=recognition_02&returnFaceId=true';
+		} else {
+			$contentType = 'application/octet-stream';
+			$header = array(
+				'Ocp-Apim-Subscription-Key' => $this->settings['ApiKey'],
+				'Content-Type' => $contentType,
+				'Content-Length' => strlen($image_url)
+			);
+			$payload = $image_url;
+			$endpoint = $this->settings['url'] . '/detect?overload=stream&recognitionModel=recognition_02&returnFaceId=true';
+		}
+		$response = $this->socket->post(
+			$endpoint,
+			$payload,
+			compact('header')
 		);
-		$this->log('Face detect API response: ' . $result, $this->tag);
-		$result = json_decode($result->body, true);
+		$this->log('Face detect API response: ' . $response, $this->tag);
+		$result = json_decode($response->body, true);
 		return $result[0]['faceId'];
 	}
 
