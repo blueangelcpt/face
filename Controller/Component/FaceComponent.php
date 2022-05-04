@@ -30,7 +30,7 @@ class FaceComponent extends Component {
 			$payload = json_encode(array(
 				'url' => $image_url
 			));
-			$endpoint = $this->settings['url'] . '/detect?recognitionModel=recognition_02&returnFaceId=true';
+			$endpoint = $this->settings['url'] . '/detect?recognitionModel=recognition_04&returnFaceId=true&detectionModel=detection_03';
 		} else {
 			$contentType = 'application/octet-stream';
 			$header = array(
@@ -39,13 +39,14 @@ class FaceComponent extends Component {
 				'Content-Length' => strlen($image_url)
 			);
 			$payload = $image_url;
-			$endpoint = $this->settings['url'] . '/detect?overload=stream&recognitionModel=recognition_02&returnFaceId=true';
+			$endpoint = $this->settings['url'] . '/detect?overload=stream&recognitionModel=recognition_04&returnFaceId=true&detectionModel=detection_03';
 		}
 		$response = $this->socket->post(
 			$endpoint,
 			$payload,
 			compact('header')
 		);
+		$this->log('Face detect API request: ' . $this->socket->request['raw'], $this->tag);
 		$this->log('Face detect API response: ' . $response, $this->tag);
 		$result = json_decode($response->body, true);
 		return $result[0]['faceId'];
@@ -64,6 +65,7 @@ class FaceComponent extends Component {
 				'Content-Type' => 'application/json',
 			))
 		);
+		$this->log('Face verify API request: ' . $this->socket->request['raw'], $this->tag);
 		$this->log('Face verify API response: ' . $result, $this->tag);
 		return json_decode($result->body, true);
 	}
